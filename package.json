@@ -1,0 +1,48 @@
+{
+  "name": "highpixelgoat",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "description": "Dashboard that turns a hypothetical scenario + style into a narrated 9:16 three.js short, directed and edited in chat by Claude Code, exportable to mp4",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx src/server/main.ts",
+    "start": "node --env-file-if-exists=.env --import tsx src/server/main.ts --prod",
+    "build": "vite build",
+    "generate": "node --env-file-if-exists=.env --import tsx src/cli/generate.ts",
+    "render": "node --env-file-if-exists=.env --import tsx src/cli/render.ts",
+    "sfx": "node --env-file-if-exists=.env --import tsx src/cli/sfx.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:coverage": "node --import tsx --test --experimental-test-coverage --test-coverage-include=src/** --test-coverage-include=web/** tests/*.test.ts",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.311",
+    "express": "^5.3.0",
+    "msedge-tts": "^2.1.1",
+    "three": "^0.186.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.0.0",
+    "@types/three": "^0.186.0",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "playwright": "^1.64.1",
+    "prettier": "^3.9.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.0.0"
+  }
+}

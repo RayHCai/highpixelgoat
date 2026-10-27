@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Generated projects, takes, audio and videos (the dashboard's archive, not source)
+out/
+
+# Background tracks are yours (often licensed); keep only the folder's README
+music/*
+!music/README.md
+
+# Sound effects too (npm run sfx writes a synthesized starter set)
+sfx/*
+!sfx/README.md
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test and tool output
+coverage/
+*.log
+npm-debug.log*
+*.tmp
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json
