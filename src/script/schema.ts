@@ -174,7 +174,11 @@ export const GeneratedSpecSchema = z.object({
     .describe(
       "The Instagram caption: a hook line, at most one more line, and a short call to action, each on its own line. Plain text only: no emoji, no dashes of any kind, no hashtags. See INSTAGRAM.",
     ),
-  hashtags: z.array(z.string()).describe("15 to 20 hashtags without the # sign, lowercase, no spaces. See INSTAGRAM."),
+  hashtags: z
+    .array(z.string())
+    .describe(
+      "Exactly 5 hashtags, the ones with the most viral potential, strongest first, without the # sign, lowercase, no spaces. See INSTAGRAM.",
+    ),
 });
 export type GeneratedSpec = z.infer<typeof GeneratedSpecSchema>;
 export type GeneratedBeat = z.infer<typeof GeneratedBeatSchema>;

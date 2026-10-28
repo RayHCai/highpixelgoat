@@ -372,26 +372,7 @@ const CHEEKS: GeneratedSpec = {
   ],
   caption:
     "Your cheeks double every hour.\nBy hour 24 they are taller than Everest.\nTag the chubbiest cheeks you know.",
-  hashtags: [
-    "reels",
-    "explore",
-    "whatif",
-    "fyp",
-    "animation",
-    "hypothetical",
-    "scale",
-    "science",
-    "3danimation",
-    "satisfying",
-    "viral",
-    "didyouknow",
-    "exponential",
-    "cheeks",
-    "everest",
-    "doubling",
-    "pixelart",
-    "growth",
-  ],
+  hashtags: ["whatif", "fyp", "science", "satisfying", "exponential"],
 };
 
 const PENNY: GeneratedSpec = {
@@ -455,26 +436,7 @@ const PENNY: GeneratedSpec = {
     ),
   ],
   caption: "A penny that doubles every day for a month.\nDay 30 is 5.4 million dollars.\nComment the day you cash out.",
-  hashtags: [
-    "reels",
-    "explore",
-    "whatif",
-    "fyp",
-    "animation",
-    "hypothetical",
-    "money",
-    "finance",
-    "compoundinterest",
-    "3danimation",
-    "satisfying",
-    "viral",
-    "didyouknow",
-    "penny",
-    "doubling",
-    "investing",
-    "lowpoly",
-    "mathtok",
-  ],
+  hashtags: ["whatif", "fyp", "money", "compoundinterest", "investing"],
 };
 
 const METRE: GeneratedSpec = {
@@ -545,26 +507,7 @@ const METRE: GeneratedSpec = {
   ],
   caption:
     "You grow one metre every minute.\nBy lunch the weather is below your knees.\nTag someone who is already too tall.",
-  hashtags: [
-    "reels",
-    "explore",
-    "whatif",
-    "fyp",
-    "animation",
-    "hypothetical",
-    "scale",
-    "science",
-    "3danimation",
-    "satisfying",
-    "viral",
-    "didyouknow",
-    "giant",
-    "tall",
-    "eiffeltower",
-    "burjkhalifa",
-    "handdrawn",
-    "growth",
-  ],
+  hashtags: ["whatif", "fyp", "giant", "science", "satisfying"],
 };
 
 /**
@@ -661,26 +604,7 @@ const PARENTS: GeneratedSpec = {
   ],
   caption:
     "What happens to your parents when you move out.\nYear one is dinner for two and a lot of leftovers.\nCall your mum.",
-  hashtags: [
-    "reels",
-    "explore",
-    "whatif",
-    "fyp",
-    "animation",
-    "hypothetical",
-    "relatable",
-    "family",
-    "3danimation",
-    "lowpoly",
-    "viral",
-    "didyouknow",
-    "movingout",
-    "parents",
-    "adulting",
-    "callyourmum",
-    "emptynest",
-    "storytime",
-  ],
+  hashtags: ["relatable", "fyp", "movingout", "parents", "adulting"],
 };
 
 /**
@@ -757,26 +681,7 @@ const NYC: GeneratedSpec = {
   ],
   caption:
     "What if it snowed cocaine over New York and never stopped.\nMonth one buries the brownstones.\nTag a New Yorker.",
-  hashtags: [
-    "reels",
-    "explore",
-    "whatif",
-    "fyp",
-    "animation",
-    "hypothetical",
-    "scale",
-    "3danimation",
-    "pixelart",
-    "satisfying",
-    "viral",
-    "didyouknow",
-    "nyc",
-    "newyork",
-    "manhattan",
-    "snowstorm",
-    "blizzard",
-    "skyline",
-  ],
+  hashtags: ["whatif", "fyp", "nyc", "newyork", "satisfying"],
 };
 
 export type ExampleId = "a" | "b" | "c" | "d" | "e";

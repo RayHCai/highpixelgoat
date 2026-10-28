@@ -290,7 +290,7 @@ test("the built-in example scripts satisfy the schema and lift into realistic se
       "every extra starts at the first beat",
     );
     assert.ok(spec.format.duration > 25 && spec.format.duration < 50, `example ${id} runs ${spec.format.duration}s`);
-    assert.ok(script.hashtags.length >= 15);
+    assert.ok(script.hashtags.length === 5);
   }
   assert.deepEqual(
     Object.values(EXAMPLES).map((s) => s.mode),

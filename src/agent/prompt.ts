@@ -49,7 +49,7 @@ Pick the narrator persona that fits the vibe: ${personaList}. Pace: "brisk" for 
 
 INSTAGRAM (take.json)
 - caption: super concise and hooky, three short lines at most, each on its own line. Line one is the hook, under 60 characters. Line two (optional) is the one number or twist that makes someone stop, under 70 characters. Line three is a call to action of two to six words. Plain text only: no emoji, no dashes of any kind, no hashtags, no quotation marks, no exclamation marks.
-- hashtags: 15 to 20, without the # sign, lowercase, no spaces: about five huge general ones (reels, explore, whatif, fyp, animation), about eight mid-size topical ones, and about five specific to this scenario. Every tag must be relevant.`;
+- hashtags: exactly 5, without the # sign, lowercase, no spaces, ordered strongest first. Pick the five with the most viral potential for this video: tags people actively browse and that this video can rank in, usually one broad discovery tag (fyp or whatif) and four topical or scenario tags with big but not saturated audiences. Skip filler like reels, explore or viral. Every tag must be relevant.`;
 
 /** The agent's standing instructions, with the music and sound-effect libraries on disk. */
 export function agentSystemPrompt(musicSection: string, sfxSection: string): string {

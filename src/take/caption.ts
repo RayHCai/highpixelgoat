@@ -3,7 +3,7 @@
  * pasted. The agent prompt asks for all of this; these make sure of it.
  */
 
-/** Clean a hashtag list the way Instagram wants it: lowercase, no spaces, no leading #, deduplicated. */
+/** Clean a hashtag list the way Instagram wants it: lowercase, no spaces, no leading #, deduplicated, and only the first five (the agent lists them strongest first). */
 export function cleanHashtags(tags: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -17,7 +17,7 @@ export function cleanHashtags(tags: string[]): string[] {
       out.push(t);
     }
   }
-  return out.slice(0, 30);
+  return out.slice(0, 5);
 }
 
 /**
