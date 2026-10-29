@@ -16,6 +16,10 @@ music/*
 sfx/*
 !sfx/README.md
 
+# And 3D models
+assets/*
+!assets/README.md
+
 # Local environment and secrets
 .env
 .env.*

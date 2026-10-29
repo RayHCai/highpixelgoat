@@ -61,5 +61,6 @@ test("describeCall gives the dashboard a short line per tool", () => {
   assert.equal(describeCall("Glob", { pattern: "*" }), "Reading the code");
   assert.equal(describeCall("mcp__take__voice", {}), "Recording the narration");
   assert.equal(describeCall("mcp__take__snapshot", {}), "Looking at frames");
+  assert.equal(describeCall("mcp__take__asset", { name: "city/car" }), "Bringing in city/car");
   assert.equal(describeCall("Something", {}), "Working");
 });

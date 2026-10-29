@@ -21,6 +21,9 @@ export const DEFAULT_MUSIC_DIR = path.join(PROJECT_ROOT, "music");
 /** The sound-effect library unless HPG_SFX_DIR points elsewhere. */
 export const DEFAULT_SFX_DIR = path.join(PROJECT_ROOT, "sfx");
 
+/** The 3D model library unless HPG_ASSETS_DIR points elsewhere. */
+export const DEFAULT_ASSETS_DIR = path.join(PROJECT_ROOT, "assets");
+
 /** `p` relative to the repository, with forward slashes, for log lines. */
 export function relativeToRoot(p: string): string {
   return path.relative(PROJECT_ROOT, p).replace(/\\/g, "/");

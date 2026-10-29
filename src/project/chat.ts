@@ -8,6 +8,7 @@ import { offlineEdit } from "../script/offline";
 import type { GeneratedSpec } from "../script/schema";
 import { describeError } from "../shared/errors";
 import { readJson, writeJson } from "../shared/json";
+import { assetsPrompt, listAssets } from "../take/assets";
 import { META_FILE, SPEC_FILE, voiceTake, type TakeContext } from "../take/folder";
 import { buildSite, seedScene } from "../take/site";
 import { listMusic, musicPrompt } from "../voice/music";
@@ -80,7 +81,7 @@ async function agentChat(
   const ctx = takeContext(projectId, variantId);
   const session = new TakeSession(ctx);
   const backup = backUp(dir);
-  const system = agentSystemPrompt(musicPrompt(listMusic()), sfxPrompt(listSfx()));
+  const system = agentSystemPrompt(musicPrompt(listMusic()), sfxPrompt(listSfx()), assetsPrompt(listAssets()));
   const resume = loadAgentSession(dir);
   let run: AgentRun;
   try {

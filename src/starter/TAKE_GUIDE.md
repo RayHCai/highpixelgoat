@@ -23,6 +23,7 @@ This folder is one narrated 9:16 short (1080x1920, 30 fps), rendered in three.js
 - src/scene/palette.ts: sky, fog and ground colours per terrain; per-setting layout and camera angle; per-style look.
 - src/scene/subject.ts: buildModel(parts, style) turns a part model into meshes (voxelised for pixels). buildSubject wraps it with the callout anchor.
 - src/scene/actors.ts: the extras, one part model each, placed every frame from resolveActors.
+- src/scene/assets.ts: ready-made glTF models from the author's 3D asset library: loadAsset, placeAsset, poseAsset (see "Models from the asset library" below). The starter itself uses none.
 - src/scene/atmosphere.ts: clouds, falling weather, the cover it piles into, debris bursts and dust rings.
 - src/scene/post.ts: post passes (half-resolution pixelation, supersampled ink outlines).
 - src/scene/noise.ts: makeRng(seed), valueNoise, fbm: the only sources of variation.
@@ -48,6 +49,31 @@ This folder is one narrated 9:16 short (1080x1920, 30 fps), rendered in three.js
 - Weather: weather.kind (none, snow, rain, ash, confetti) and weather.color; per beat, fall and depth.
 - Starter places (world.terrain): bedroom, livingroom, kitchen and office are cut-away rooms 3 units square around the subject, open toward the camera (front and left walls removed), with the door in the right wall at (1.5, 0.7), the rest of the house to the right (x 1.5 to 3.3), the garden behind (z below -1.8), the front lawn toward the camera (z 1.6 to 3.5), and a street along x at z = -6 and another along z at x = -5.5. street puts the subject on a road along x with kerbs at z = +-1.3, houses from z = +-2.5, and cars arriving from x = -14. city is a paved plaza 6 units across with roads at x = 10 and z = -10 and benches and planters at radius 5 to 6. park is open lawn with a winding path and trees from radius 7 outward. plains, mountains, island, desert, snow and ocean are open landscapes.
 - Styles: pixels (half-resolution, nearest filtering, voxelised models), lowpoly (flat-shaded), drawing (toon shading with ink outlines on a paper-tinted sky).
+
+## Models from the asset library
+
+When your instructions list 3D ASSETS, a model from there can stand in for a part model wherever primitives would look crude. Call the asset tool with its name: it copies the file to src/assets/<name>.glb. Then, in the scene file that uses it (here src/scene/world.ts):
+
+```ts
+import corgiUrl from "../assets/corgi.glb?url";
+import { loadAsset, placeAsset, poseAsset } from "./assets";
+
+const corgi = await loadAsset(corgiUrl); // top level: loaded before the first frame
+
+// in the constructor: a copy whose largest dimension is 0.35 units, standing on y = 0, shaded like the take
+this.dog = placeAsset(corgi, 0.35, { style: spec.style });
+this.scene.add(this.dog);
+
+// in update(state): stand it on the ground and pose it as a function of t
+this.dog.position.set(x, this.groundAt(x, z), z);
+poseAsset(this.dog, corgi, "Walk", state.t - beatStart);
+```
+
+- Size it in world units from its real size (1 unit is about 2.83 m; the list gives sizes as authored, which are often not to scale). glTF models face +z, toward the camera; turn the copy with rotation.y.
+- Stand it on the ground with groundAt(x, z) in world.ts (make it public to use it elsewhere): rooms and other floors are not at y = 0.
+- `style` restyles its materials to match the starter (toon for drawing, flat Lambert for lowpoly and pixels); leave it out to keep the authored look. Models are not voxelised in the pixels style.
+- poseAsset sets a clip to an exact time and replaces the previous pose, so it is deterministic; to switch clips, call it with the other clip. Clip names are in the asset list.
+- Place as many copies as you like from one loadAsset. Each model you use adds its file size to player.js.
 
 ## Going past the starter
 

@@ -3,6 +3,7 @@ import type { Page } from "playwright";
 import { z } from "zod";
 import { seekAndWait } from "../render/capture";
 import { describeError } from "../shared/errors";
+import { addAsset, describeAsset, takeAssetPath, type LibraryAsset } from "../take/assets";
 import type { CoreSpec } from "../take/core";
 import { readTakeSpec, voiceTake } from "../take/folder";
 import { buildSite, type BuildReport } from "../take/site";
@@ -10,9 +11,10 @@ import { TAKE_SERVER } from "./guard";
 import type { TakeSession } from "./session";
 
 /**
- * The in-process MCP server with the three tools only this project has:
- * voice (record and time the narration), build (bundle the take's renderer)
- * and snapshot (look at real frames).
+ * The in-process MCP server with the tools only this project has: voice
+ * (record and time the narration), build (bundle the take's renderer),
+ * snapshot (look at real frames) and asset (bring a model in from the 3D
+ * asset library).
  */
 
 const MAX_SNAPSHOTS = 6;
@@ -90,6 +92,20 @@ async function snapshots(session: TakeSession, times: number[]): Promise<Content
   }
 }
 
+/** What the model is told after an asset is copied in: where it is and how to use it. */
+function describeAdded(asset: LibraryAsset): string {
+  const file = takeAssetPath(asset.name);
+  return [
+    `Copied to ${file}`,
+    describeAsset(asset),
+    "Load it once at the top level of the module that uses it (from a file in src/scene/), then place copies of it:",
+    `  import modelUrl from "../${file.slice("src/".length)}?url";`,
+    `  const model = await loadAsset(modelUrl); // loadAsset, placeAsset and poseAsset are in src/scene/assets.ts`,
+    `  const copy = placeAsset(model, <largest dimension in world units>, { style: spec.style });`,
+    "Animate a copy with poseAsset(copy, model, clipName, seconds). Build and snapshot to check its size, facing and look.",
+  ].join("\n");
+}
+
 /** The take server, bound to one take. */
 export function takeServer(session: TakeSession): McpSdkServerConfigWithInstance {
   const voice = tool(
@@ -113,6 +129,23 @@ export function takeServer(session: TakeSession): McpSdkServerConfigWithInstance
     ({ times }) => result(() => snapshots(session, times)),
   );
 
-  // alwaysLoad keeps the three tools in front of the model instead of behind tool search.
-  return createSdkMcpServer({ name: TAKE_SERVER, version: "1.0.0", alwaysLoad: true, tools: [voice, build, snapshot] });
+  const asset = tool(
+    "asset",
+    "Copy a model from the 3D asset library (the 3D ASSETS list in your instructions) into this take under src/assets/, and say how to import, place and animate it. Call it once per model the scene uses.",
+    { name: z.string().min(1).describe("The model's name exactly as the 3D ASSETS list gives it") },
+    ({ name }) =>
+      result(async () => {
+        const added = addAsset(session.dir, name);
+        session.changed = true;
+        return describeAdded(added);
+      }),
+  );
+
+  // alwaysLoad keeps the tools in front of the model instead of behind tool search.
+  return createSdkMcpServer({
+    name: TAKE_SERVER,
+    version: "1.0.0",
+    alwaysLoad: true,
+    tools: [voice, build, snapshot, asset],
+  });
 }

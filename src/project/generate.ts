@@ -8,6 +8,7 @@ import { toGenerated } from "../script/lift";
 import { offlineScript } from "../script/offline";
 import { describeError } from "../shared/errors";
 import { parseSpec } from "../starter/spec/schema";
+import { assetsPrompt, listAssets } from "../take/assets";
 import { seedScene } from "../take/site";
 import { listMusic, musicPrompt } from "../voice/music";
 import { listSfx, sfxPrompt } from "../voice/sfx";
@@ -53,7 +54,7 @@ async function buildVariant(projectId: string, variantId: VariantId): Promise<vo
   }
   const session = new TakeSession(takeContext(projectId, variantId));
   const task = generationTask(project.prompt, generationSeed(projectId, variantId));
-  const system = agentSystemPrompt(musicPrompt(listMusic()), sfxPrompt(listSfx()));
+  const system = agentSystemPrompt(musicPrompt(listMusic()), sfxPrompt(listSfx()), assetsPrompt(listAssets()));
   const run = await runSceneAgent(session, system, task, { verify: "always" });
   saveAgentSession(dir, run);
   publishTake(projectId, variantId);

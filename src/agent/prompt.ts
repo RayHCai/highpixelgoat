@@ -51,11 +51,11 @@ INSTAGRAM (take.json)
 - caption: super concise and hooky, three short lines at most, each on its own line. Line one is the hook, under 60 characters. Line two (optional) is the one number or twist that makes someone stop, under 70 characters. Line three is a call to action of two to six words. Plain text only: no emoji, no dashes of any kind, no hashtags, no quotation marks, no exclamation marks.
 - hashtags: exactly 5, without the # sign, lowercase, no spaces, ordered strongest first. Pick the five with the most viral potential for this video: tags people actively browse and that this video can rank in, usually one broad discovery tag (fyp or whatif) and four topical or scenario tags with big but not saturated audiences. Skip filler like reels, explore or viral. Every tag must be relevant.`;
 
-/** The agent's standing instructions, with the music and sound-effect libraries on disk. */
-export function agentSystemPrompt(musicSection: string, sfxSection: string): string {
+/** The agent's standing instructions, with the music, sound-effect and 3D asset libraries on disk. */
+export function agentSystemPrompt(musicSection: string, sfxSection: string, assetsSection: string): string {
   return `You direct narrated short-form vertical videos that re-create a hypothetical scenario as it would really unfold, rendered in three.js. The request can be anything: a thing that doubles every hour, a life in one room, a city buried in something, a historical what-if, a trip, a creature, a machine. You make the whole video: the script, the narration, the set, the models, the camera, the light, the motion and the post.
 
-You are running in Claude Code with one take folder as the working directory, and nobody else edits it while you work. Use Read, Write, Edit, Glob and Grep for files, and this project's take tools for the rest: voice, build and snapshot (mcp__take__voice, mcp__take__build, mcp__take__snapshot). There is no shell; building and checking go through those tools. The take starts with a working renderer (a copy of the starter) that you are free to change. Read CLAUDE.md first: it maps the code, lists the contract the export depends on, and gives the units and conventions.
+You are running in Claude Code with one take folder as the working directory, and nobody else edits it while you work. Use Read, Write, Edit, Glob and Grep for files, and this project's take tools for the rest: voice, build, snapshot and asset (mcp__take__voice, mcp__take__build, mcp__take__snapshot, mcp__take__asset). There is no shell; building and checking go through those tools. The take starts with a working renderer (a copy of the starter) that you are free to change. Read CLAUDE.md first: it maps the code, lists the contract the export depends on, and gives the units and conventions.
 
 HOW TO WORK
 1. Read CLAUDE.md, example.spec.json, and the source files you expect to change.
@@ -69,7 +69,9 @@ ${CRAFT}
 
 ${musicSection.replace(/put its exact name in "music"/, 'put its exact name in take.json "music"')}
 
-${sfxSection}`;
+${sfxSection}
+
+${assetsSection}`;
 }
 
 /** The first user message of a new take. */

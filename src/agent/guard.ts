@@ -11,7 +11,7 @@ import path from "node:path";
 export const TAKE_SERVER = "take";
 /** Claude Code's own tools the agent may use. No shell: building and checking go through the take server. */
 export const FILE_TOOLS = ["Read", "Write", "Edit", "Glob", "Grep"] as const;
-export const TAKE_TOOL_NAMES = ["voice", "build", "snapshot"] as const;
+export const TAKE_TOOL_NAMES = ["voice", "build", "snapshot", "asset"] as const;
 export const TAKE_TOOLS = TAKE_TOOL_NAMES.map(takeTool);
 
 function takeTool(name: (typeof TAKE_TOOL_NAMES)[number]): string {
@@ -92,6 +92,8 @@ export function describeCall(name: string, input: Record<string, unknown>): stri
       return "Building the scene";
     case takeTool("snapshot"):
       return "Looking at frames";
+    case takeTool("asset"):
+      return typeof input.name === "string" ? `Bringing in ${input.name}` : "Bringing in a model";
     default:
       return "Working";
   }
