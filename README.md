@@ -92,6 +92,7 @@ Set these in the shell or in a `.env` file (see `.env.example`).
 | `HPG_MUSIC_VOLUME`                       | Music level under the voice before ducking, 0 to 1, default 0.22                                                                                                                                          |
 | `HPG_MUSIC_SOLO_VOLUME`                  | Music level in a take with no narration, 0 to 1, default 0.6                                                                                                                                              |
 | `HPG_SFX_DIR`                            | Folder of sound effects, default `sfx/`                                                                                                                                                                   |
+| `HPG_ASSETS_DIR`                         | Folder of 3D models (`.glb`), default `assets/`                                                                                                                                                           |
 | `PORT`                                   | Dashboard port, default 5173                                                                                                                                                                              |
 | `HOST`                                   | Interface to listen on, default `127.0.0.1`; `0.0.0.0` opens the dashboard (and your Claude account) to the network                                                                                       |
 
@@ -129,6 +130,20 @@ your own recordings next to them. Claude sees the names and places effects on
 beats (`sfx: [{ name, offset, volume }]`), mixed on top of the voice and the
 music. See [sfx/README.md](sfx/README.md).
 
+## 3D assets
+
+Drop `.glb` models into `assets/` (subfolders are fine). Claude sees each
+model's name, size, weight and animation clips, and when a scene needs
+something primitives would make crude (a character, an animal, a vehicle, a
+landmark) it copies the model into the take and bundles it into `player.js`,
+restyled to the take's look and posed at exact times. With an empty folder,
+every model is built from primitives. `npm run assets` writes a starter set:
+nine characters (three designs each of Tung Tung Tung Sahur, Locked In Alien
+and Chopped Chin) with named joints and looping clips. One design per
+character is sculpted in detail from dense geometry (`src/take/models/`), the
+rest are primitive models (`src/take/characters.ts`). See
+[assets/README.md](assets/README.md).
+
 ## Commands
 
 | Command                                                                                      | What it does                                                         |
@@ -139,6 +154,7 @@ music. See [sfx/README.md](sfx/README.md).
 | `npm run render -- out/<id>/<a\|b\|c> [--snapshots 0,10,28] [--out f.mp4] [--png] [--crf n]` | Export a built site to mp4 (or stills) without the dashboard         |
 | `npm run render -- <scenario>.json`                                                          | Import a hand-written scenario into `out/` (voiced) and render it    |
 | `npm run sfx [-- --force]`                                                                   | Write the starter sound effects into `sfx/`                          |
+| `npm run assets [-- --force]`                                                                | Write the built-in characters into `assets/`                         |
 | `npm run check`                                                                              | Format check, lint, typecheck and tests (see Development)            |
 
 A full render is slow but hands-off: a 30-second short takes 5 to 15 minutes
@@ -154,6 +170,7 @@ out/<project id>/
   a/ b/ c/              one self-contained site per take
     index.html          the 9:16 page (fonts from Google Fonts, everything else local)
     src/                the take's own renderer: a copy of the starter that Claude extends
+    src/assets/         models Claude brought in from assets/, bundled into player.js
     CLAUDE.md           the map of that code and the contract it keeps
     player.js           src/ bundled (three.js inlined)
     spec.json           the timed scenario the page plays, in the take's own schema

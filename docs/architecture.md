@@ -27,7 +27,7 @@ shared ─▶ starter ─▶ script ┐
 | `src/script/`  | Node    | The flat starter-shaped script: its schema, the lift into a full spec, the bundled examples, and offline mode.                      |
 | `src/voice/`   | Node    | Text-to-speech providers (ElevenLabs, Edge, Windows SAPI, silent), the music library, ffmpeg mixdown.                               |
 | `src/render/`  | Node    | Headless Chromium capture (`capture.ts`) and the ffmpeg video/stills exporter (`video.ts`).                                         |
-| `src/take/`    | Node    | One take folder: the core spec contract, seeding and building the site, narration, the Instagram caption.                           |
+| `src/take/`    | Node    | One take folder: the core spec contract, seeding and building the site, narration, the 3D asset library, the Instagram caption.     |
 | `src/agent/`   | Node    | The scene agent: Claude Code config, system prompt, path guard, session, MCP take tools, the verify gate, the run loop.             |
 | `src/project/` | Node    | Projects and their records, the on-disk store, and the pipelines: generate, chat, render.                                           |
 | `src/server/`  | Node    | The Express API and dev/prod serving. Thin: validates input and calls `project/`.                                                   |
@@ -56,7 +56,8 @@ outside the take and `node_modules`, stylesheets Vite would process, workers
 and `import.meta.url`, so a take's code cannot copy a file such as `.env` into
 its `player.js`. Then there is an in-process MCP server (`src/agent/take-server.ts`)
 with this project's tools: `voice` (record and time the narration), `build`
-(determinism lint, type check, bundle) and `snapshot` (real 1080x1920 frames
+(determinism lint, type check, bundle), `asset` (copy a model from the 3D asset
+library into the take, `src/take/assets.ts`) and `snapshot` (real 1080x1920 frames
 from headless Chromium, returned as images so Claude sees what it made). Your
 own Claude Code settings, hooks, plugins and memory are not loaded. When
 Claude stops, the take must pass `verifyTake` (`src/agent/verify.ts`): a valid
@@ -94,6 +95,10 @@ and objects in the scene: each is its own part model with a real size in
 metres and beat-timed keyframes; `resolveActors` in
 `src/starter/spec/timing.ts` glides them between keyframes, and
 `src/starter/scene/actors.ts` draws them life-sized while the subject grows.
+Ready-made models come from the 3D asset library instead: the `asset` tool
+copies a `.glb` into the take's `src/assets/`, and `src/starter/scene/assets.ts`
+loads it (a top-level await, so it is ready before the first frame), sizes it,
+restyles it to the take's look and poses its animation clips at exact times.
 `src/script/` keeps the flat starter-shaped script (`schema.ts`, `lift.ts`)
 that the offline examples and imports are written in.
 
