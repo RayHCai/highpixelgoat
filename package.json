@@ -25,17 +25,17 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.3.311",
+    "@anthropic-ai/claude-agent-sdk": "^0.3.316",
     "express": "^5.3.0",
     "msedge-tts": "^2.1.1",
-    "three": "^0.186.1",
+    "three": "^0.187.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
-    "@types/three": "^0.186.0",
+    "@types/three": "^0.187.0",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
