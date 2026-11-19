@@ -1,8 +1,10 @@
+import { AvatarSchema } from "../starter/spec/schema";
+import { toPart } from "./lift";
 import type { GeneratedActor, GeneratedBeat, GeneratedKeyframe, GeneratedPart, GeneratedSpec } from "./schema";
 
 /**
  * The bundled example scripts, written in the starter-shaped script format:
- * three that scale, one story and one overview. They stand in for Claude in
+ * three that scale, two stories (one of them blocky avatars) and one overview. They stand in for Claude in
  * offline mode, and one of them is written into every take as
  * example.spec.json.
  */
@@ -684,7 +686,163 @@ const NYC: GeneratedSpec = {
   hashtags: ["whatif", "fyp", "nyc", "newyork", "satisfying"],
 };
 
-export type ExampleId = "a" | "b" | "c" | "d" | "e";
-export const EXAMPLE_IDS: readonly ExampleId[] = ["a", "b", "c", "d", "e"];
+/** A duck as a part model: plump body, head, beak and a tail tuft; reads as a duck in every style. */
+const DUCK_PARTS: GeneratedPart[] = [
+  part("sphere", [0, 0.32, -0.05], [0.6, 0.5, 0.8], "#f6d33c"),
+  part("sphere", [0, 0.72, 0.22], [0.36, 0.36, 0.36], "#f6d33c"),
+  part("box", [0, 0.68, 0.46], [0.2, 0.08, 0.18], "#f08a24"),
+  part("sphere", [-0.12, 0.78, 0.36], [0.06, 0.06, 0.06], "#1a1a1a"),
+  part("sphere", [0.12, 0.78, 0.36], [0.06, 0.06, 0.06], "#1a1a1a"),
+  part("cone", [0, 0.5, -0.46], [0.2, 0.26, 0.2], "#e9c22f", { rx: -55 }),
+];
 
-export const EXAMPLES: Record<ExampleId, GeneratedSpec> = { a: CHEEKS, b: PENNY, c: METRE, d: PARENTS, e: NYC };
+type AvatarLook = Partial<NonNullable<GeneratedActor["avatar"]>>;
+function avatar(look: AvatarLook): NonNullable<GeneratedActor["avatar"]> {
+  return AvatarSchema.parse(look);
+}
+
+/** Someone in town, holding their duck. */
+function townie(name: string, look: AvatarLook, keyframes: GeneratedKeyframe[]): GeneratedActor {
+  return {
+    ...extra(name, "person", 1.7, [], keyframes),
+    avatar: avatar({ held: DUCK_PARTS.map((p) => toPart(p)), heldSize: 0.3, ...look }),
+  };
+}
+
+function act(k: GeneratedKeyframe, action: NonNullable<GeneratedKeyframe["action"]>): GeneratedKeyframe {
+  return { ...k, action };
+}
+
+const TOWN_EXTRAS: GeneratedActor[] = [
+  townie("the neighbour", { shirt: "#2f9e5b", pants: "#2a2f45", hair: "spiky", hairColor: "#e3a72f", face: "grin" }, [
+    act(at(0, 0, -1.6, -1.7, 20), "wave"),
+    at(1, 0, -1.6, -1.7, 20),
+    at(1, 3, 0.9, -1.7, 90),
+    act(at(2, 0, 0.9, -1.7, 0), "dance"),
+    act(at(4, 0, 0.9, -1.7, 0), "point"),
+    act(at(5, 0, 0.9, -1.7, 0), "cheer"),
+  ]),
+  townie("the postman", { shirt: "#3567c7", pants: "#1f2433", hat: "cap", hatColor: "#3567c7", face: "smile" }, [
+    at(0, 0, 2.2, -0.75, 270),
+    act(at(1, 0, 2.2, -0.75, 270), "wave"),
+    act(at(2, 0, 1.9, -0.75, 0), "dance"),
+    act(at(3, 0, 1.9, -0.75, 0), "idle"),
+    act(at(4, 0, 1.9, -0.75, 0), "point"),
+  ]),
+  townie(
+    "the mayor",
+    { shirt: "#1d1d24", pants: "#1d1d24", hat: "tophat", hatColor: "#1d1d24", face: "smug", build: "chunky" },
+    [
+      at(0, 0, -3.2, -1.8, 0, false),
+      at(2, 0, -3.2, -1.8, 90),
+      act(at(2, 2.5, -1.2, -1.8, 0), "dance"),
+      act(at(3, 0, -0.7, -0.9, 0), "point"),
+      act(at(4, 0, -0.7, -0.9, 0), "point"),
+    ],
+  ),
+  townie(
+    "a kid",
+    { shirt: "#e0569b", pants: "#3a3f7a", hair: "bun", hairColor: "#5a3420", build: "kid", face: "grin" },
+    [act(at(0, 0, 1.0, -1.9, 0), "jump"), act(at(2, 0, -0.2, -1.9, 0), "dance"), act(at(4, 0, -0.2, -1.9, 0), "point")],
+  ),
+  extra("the spare duck", "animal", 0.45, DUCK_PARTS, [
+    at(0, 0, -0.55, -0.2, 90),
+    at(1, 0, -0.55, -0.2, 90),
+    at(1, 3, 0.05, -0.25, 90),
+    at(3, 0, 0.05, -0.25, 90),
+    at(3, 2, 0.35, -0.3, 90),
+    at(5, 0, 0.35, -0.3, 90),
+    at(5, 0.6, 0.55, 0.15, 0),
+  ]),
+];
+
+/**
+ * A blocky-avatar story in the "in this town, everyone has X" format: a
+ * studded suburb, every neighbour holding a duck, the deadpan narrator, and
+ * a twist in the last beat that the picture has been showing all along.
+ */
+const TOWN: GeneratedSpec = {
+  mode: "story",
+  title: "In this town, everyone has a duck",
+  style: "blocks",
+  terrain: "street",
+  seed: 21,
+  subjectLabel: "YOU",
+  subjectParts: [],
+  subjectAvatar: avatar({ shirt: "#f2f2f2", pants: "#3b4b6b", hair: "short", hairColor: "#2a1d14", face: "neutral" }),
+  subjectKeyframes: [
+    at(0, 0, -1.0, 0.1, 0),
+    at(1, 0, -1.0, 0.1, 0),
+    at(1, 3, 0.3, 0.1, 90),
+    at(3, 0, 0.3, 0.1, 0),
+    at(3, 2, 0.6, 0.1, 90),
+    act(at(4, 0, 0.6, 0.1, 0), "idle"),
+    act(at(5, 0.4, 0.6, 0.1, 20), "idle"),
+  ],
+  extras: TOWN_EXTRAS,
+  weatherKind: "none",
+  weatherColor: "#ffffff",
+  angle: "deadpan",
+  rule: "EVERYONE HAS A DUCK",
+  music: "",
+  voicePersona: "dry",
+  voicePace: "brisk",
+  beats: [
+    beat(
+      "Day 1",
+      ["DUCKS PER PERSON: 1", "YOUR DUCKS: 0"],
+      "In this town, everyone has a duck. Everyone except you.",
+      1,
+      [],
+      {
+        shot: 2.5,
+      },
+    ),
+    beat(
+      "Day 2",
+      ["MORNING WAVES: 4"],
+      "The neighbours walk their ducks at sunrise. They wave. You wave back.",
+      1,
+      [],
+      {
+        shot: 3.5,
+      },
+    ),
+    beat(
+      "Day 5",
+      ["DUCK PARTIES: 3", "INVITES: 0"],
+      "Friday is the duck party. You are not invited, which feels fair.",
+      1,
+      [],
+      {
+        shot: 4.5,
+      },
+    ),
+    beat("Day 9", ["DUCK TAX: 12 DOLLARS"], "The mayor brings in a duck tax. You pay it anyway, to fit in.", 1, [], {
+      shot: 3,
+    }),
+    beat("Day 14", ["PEOPLE: 40", "DUCKS: 41"], "Then you count. Forty people. Forty one ducks.", 1, [], { shot: 4.5 }),
+    beat(
+      "Day 15",
+      ["SPARE DUCK: FOUND"],
+      "The spare one has been following you since day one. Nobody told you.",
+      1,
+      ["flash"],
+      { shot: 2 },
+    ),
+  ],
+  caption: "In this town everyone has a duck.\nForty people, forty one ducks.\nCount yours.",
+  hashtags: ["inthistown", "fyp", "blockygame", "duck", "storytime"],
+};
+
+export type ExampleId = "a" | "b" | "c" | "d" | "e" | "f";
+export const EXAMPLE_IDS: readonly ExampleId[] = ["a", "b", "c", "d", "e", "f"];
+
+export const EXAMPLES: Record<ExampleId, GeneratedSpec> = {
+  a: CHEEKS,
+  b: PENNY,
+  c: METRE,
+  d: PARENTS,
+  e: NYC,
+  f: TOWN,
+};

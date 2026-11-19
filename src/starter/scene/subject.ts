@@ -1,14 +1,16 @@
 import * as THREE from "three";
-import { partsTop, subjectParts } from "../spec/parts";
-import type { Part, Pattern, ScenarioSpec, Style } from "../spec/schema";
-import { toonGradient } from "./terrain";
+import { normaliseParts, partsTop, subjectParts } from "../spec/parts";
+import type { Avatar, Part, Pattern, ScenarioSpec, Style } from "../spec/schema";
+import { buildAvatar, type AvatarRig } from "./avatar";
+import { styledMaterial, unitBall, unitBox } from "./materials";
 
 /**
  * The subject is whatever the scenario is about: a dog, a penny, a person, a
  * pair of cheeks. It arrives as a list of primitives in a unit space (bottom
  * at y=0, largest dimension 1), each with its own colour and rotation.
  * "pixels" voxelises the primitives so every shape reads as blocks; the other
- * styles build smooth or faceted primitives.
+ * styles build smooth, faceted or rounded-plastic primitives. A subject or
+ * extra can be a blocky avatar instead (avatar.ts), posed every frame.
  */
 
 function localFrame(p: Part): THREE.Matrix4 {
@@ -103,13 +105,28 @@ export interface SubjectRig {
   group: THREE.Group;
   /** Top of the subject in local unit space (for the callout anchor). */
   topLocal: THREE.Vector3;
+  /** Set when the subject is an avatar: pose it every frame with poseAvatar. */
+  avatar: AvatarRig | null;
 }
 
 export function buildSubject(spec: ScenarioSpec, style: Style): SubjectRig {
+  const avatar = spec.subject.avatar;
+  if (avatar) {
+    const rig = avatarModel(avatar, style);
+    const group = new THREE.Group();
+    group.add(rig.root);
+    return { group, topLocal: new THREE.Vector3(0, rig.top, 0), avatar: rig };
+  }
   const parts = subjectParts(spec);
   const group = new THREE.Group();
   group.add(buildModel(parts, style));
-  return { group, topLocal: new THREE.Vector3(0, partsTop(parts), 0) };
+  return { group, topLocal: new THREE.Vector3(0, partsTop(parts), 0), avatar: null };
+}
+
+/** An avatar rig in the given style, holding its held model if it has one. 1 tall, feet at y=0. */
+export function avatarModel(avatar: Avatar, style: Style): AvatarRig {
+  const held = avatar.held.length ? buildModel(normaliseParts(avatar.held), style) : null;
+  return buildAvatar(avatar, style, held);
 }
 
 /** A part model in the given style, bottom at y=0, largest dimension 1. Used for the subject and every extra. */
@@ -173,10 +190,7 @@ function buildPrimitiveSubject(parts: Part[], style: Style): THREE.Object3D {
     let mat = materials.get(key);
     if (mat) return mat;
     const map = p.pattern === "solid" ? null : makePatternTexture(p.pattern, p.color, p.color2 ?? p.color);
-    mat =
-      style === "drawing"
-        ? new THREE.MeshToonMaterial({ color: map ? "#ffffff" : p.color, map, gradientMap: toonGradient() })
-        : new THREE.MeshLambertMaterial({ color: map ? "#ffffff" : p.color, map, flatShading: true });
+    mat = styledMaterial(style, { color: map ? "#ffffff" : p.color, map });
     materials.set(key, mat);
     return mat;
   };
@@ -185,13 +199,13 @@ function buildPrimitiveSubject(parts: Part[], style: Style): THREE.Object3D {
     let geometry: THREE.BufferGeometry;
     switch (p.kind) {
       case "sphere":
-        geometry = new THREE.IcosahedronGeometry(0.5, style === "lowpoly" ? 1 : 2);
+        geometry = unitBall(style);
         break;
       case "box":
-        geometry = new THREE.BoxGeometry(1, 1, 1);
+        geometry = unitBox(style);
         break;
       case "cylinder":
-        geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 14);
+        geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, style === "blocks" ? 20 : 14);
         break;
       case "cone":
         geometry = new THREE.ConeGeometry(0.5, 1, 4);

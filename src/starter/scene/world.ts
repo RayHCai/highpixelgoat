@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { ScenarioSpec } from "../spec/schema";
 import { resolveActors, type TimelineState } from "../spec/timing";
 import { Actors } from "./actors";
+import { poseAvatar } from "./avatar";
 import { Clouds, Cover, Debris, DustRing, effectAge, Weather } from "./atmosphere";
 import { CameraRig } from "./camera";
 import { SETTINGS, STYLE_LOOKS, TERRAIN_PALETTES } from "./palette";
@@ -65,17 +66,19 @@ export class World {
 
     // Sky and fog.
     const sky = new THREE.Color(spec.world.sky ?? palette.sky);
-    if (look.paper) sky.lerp(new THREE.Color(look.paper), 0.55);
     const fogColor = new THREE.Color(spec.world.fog ?? palette.fog);
-    if (look.paper) fogColor.lerp(new THREE.Color(look.paper), 0.55);
+    if (look.tint) {
+      sky.lerp(new THREE.Color(look.tint.color), look.tint.amount);
+      fogColor.lerp(new THREE.Color(look.tint.color), look.tint.amount);
+    }
     this.scene.background = sky;
     this.fog = new THREE.Fog(fogColor, 20, 200);
     this.scene.fog = this.fog;
 
     // Lights: soft sky bounce plus one shadow-casting sun.
-    const hemi = new THREE.HemisphereLight(sky, new THREE.Color(palette.ground[0]), 0.85);
+    const hemi = new THREE.HemisphereLight(sky, new THREE.Color(palette.ground[0]), look.hemi);
     this.scene.add(hemi);
-    this.sun = new THREE.DirectionalLight(0xffffff, spec.style === "drawing" ? 1.2 : 1.7);
+    this.sun = new THREE.DirectionalLight(0xffffff, look.sun);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
     this.sun.shadow.bias = -0.0005;
@@ -140,6 +143,7 @@ export class World {
     this.subject.group.rotation.set(0, at.ry, 0);
     this.subject.group.visible = at.visible;
     this.subject.group.scale.setScalar(size);
+    if (this.subject.avatar) poseAvatar(this.subject.avatar, at, state.t, size);
 
     const shakeAge = effectAge(state, "shake");
     const shake = shakeAge === null ? 0 : Math.max(0, 1 - shakeAge / 0.9);
@@ -170,11 +174,15 @@ export class World {
     // People and animals walk on top of what has fallen; vehicles and objects
     // stay on the ground and get buried by it.
     const actors = this.spec.actors;
-    this.actors.update(resolveActors(this.spec, state.t), (x, z, i) => {
-      const kind = actors[i]?.kind;
-      const rides = kind === "person" || kind === "animal";
-      return this.groundAt(x, z) + (rides ? depth : 0);
-    });
+    this.actors.update(
+      resolveActors(this.spec, state.t),
+      (x, z, i) => {
+        const kind = actors[i]?.kind;
+        const rides = kind === "person" || kind === "animal";
+        return this.groundAt(x, z) + (rides ? depth : 0);
+      },
+      state.t,
+    );
     this.debris.mesh.position.set(at.x, 0, at.z);
     this.debris.update(effectAge(state, "debris"), size, surfaceY);
     this.dust.mesh.position.set(at.x, 0, at.z);

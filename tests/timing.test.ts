@@ -191,7 +191,17 @@ test("the camera eases between the shots of consecutive beats and settles on the
 });
 
 test("the subject walks its own keyframes and the camera focus follows; without them it stays at the origin", () => {
-  assert.deepEqual(resolveSubject(example, 5), { x: 0, z: 0, y: 0, ry: 0, visible: true, moving: false });
+  assert.deepEqual(resolveSubject(example, 5), {
+    x: 0,
+    z: 0,
+    y: 0,
+    ry: 0,
+    visible: true,
+    moving: false,
+    speed: 0,
+    action: "idle",
+    since: 5,
+  });
   const walking: ScenarioSpec = {
     ...example,
     mode: "story",
@@ -210,8 +220,9 @@ test("the subject walks its own keyframes and the camera focus follows; without 
   assert.ok(mid.x > 0 && mid.x < 4 && mid.moving, "half way along the walk");
   assert.ok(Math.abs(mid.ry - Math.PI / 2) < 1e-9, "faces the way it walks");
   assert.ok(mid.y > 0, "bobs as it walks");
+  assert.ok(Math.abs(mid.speed - 2) < 1e-9, "four units in two seconds");
   const arrived = resolveState(walking, t1 + 2.5).subjectAt;
-  assert.deepEqual([arrived.x, arrived.visible, arrived.moving], [4, true, false]);
+  assert.deepEqual([arrived.x, arrived.visible, arrived.moving, arrived.speed], [4, true, false, 0]);
   assert.equal(resolveState(walking, walking.beats[2]!.at + 0.1).subjectAt.visible, false, "hidden once it has left");
 });
 

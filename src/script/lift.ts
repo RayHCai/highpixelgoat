@@ -27,7 +27,9 @@ const MIN_SHOT = 0.3;
 export function toScenarioSpec(g: GeneratedSpec, o: { id: string; seed: number | null }): ScenarioSpec {
   const beats = g.beats.slice(0, 16);
   if (beats.length < 2) throw new Error("the script needs at least two beats");
-  if (g.subjectParts.length < 1) throw new Error("the subject needs at least one part");
+  if (g.subjectParts.length < 1 && !g.subjectAvatar) {
+    throw new Error("the subject needs at least one part or an avatar");
+  }
   const parts = normaliseParts(g.subjectParts.map(toPart));
   const mode = g.mode ?? "scale";
   const weatherKind = g.weatherKind ?? "none";
@@ -40,8 +42,10 @@ export function toScenarioSpec(g: GeneratedSpec, o: { id: string; seed: number |
     world: { terrain: g.terrain, seed: o.seed ?? Math.trunc(g.seed) },
     subject: {
       label: g.subjectLabel.trim().slice(0, 16),
-      parts,
-      baseSize: baseSizeFor(parts),
+      ...(parts.length ? { parts } : {}),
+      ...(g.subjectAvatar ? { avatar: g.subjectAvatar } : {}),
+      // An avatar is 1 tall, a person: 1.7 metres.
+      baseSize: g.subjectAvatar ? Math.round(1.7 * UNITS_PER_METRE * 1000) / 1000 : baseSizeFor(parts),
       // The subject only walks in a story; the other formats keep it put.
       keyframes:
         mode === "story" ? (g.subjectKeyframes ?? []).slice(0, 12).map((k) => toKeyframe(k, beats.length, false)) : [],
@@ -88,6 +92,7 @@ export function toKeyframe(k: GeneratedKeyframe, beatCount: number, keepClear: b
     z: Math.round(z * 100) / 100,
     face: finite(k.face) % 360,
     visible: k.visible !== false,
+    ...(k.action ? { action: k.action } : {}),
   };
 }
 
@@ -96,12 +101,13 @@ export function toKeyframe(k: GeneratedKeyframe, beatCount: number, keepClear: b
  * keyframes clamped to the beats and kept out of the camera line.
  */
 export function toActor(e: GeneratedActor, beatCount: number): Actor | null {
-  if (e.parts.length === 0 || e.keyframes.length === 0) return null;
+  if ((e.parts.length === 0 && !e.avatar) || e.keyframes.length === 0) return null;
   const size = Math.min(6, Math.max(0.05, finite(e.sizeMetres, 1.7) * UNITS_PER_METRE));
   return {
     name: e.name.trim().slice(0, 40) || "extra",
     kind: e.kind,
     parts: normaliseParts(e.parts.map(toPart)),
+    ...(e.avatar ? { avatar: e.avatar } : {}),
     size: Math.round(size * 1000) / 1000,
     keyframes: e.keyframes.slice(0, 12).map((k) => toKeyframe(k, beatCount, true)),
   };
@@ -170,6 +176,7 @@ export function toGenerated(
     z: k.z,
     face: k.face,
     visible: k.visible,
+    ...(k.action ? { action: k.action } : {}),
   });
   const metres = (units: number) => Math.round((units / UNITS_PER_METRE) * 100) / 100;
   return {
@@ -181,6 +188,7 @@ export function toGenerated(
       kind: a.kind,
       sizeMetres: metres(a.size),
       parts: a.parts.map(partOut),
+      ...(a.avatar ? { avatar: a.avatar } : {}),
       keyframes: a.keyframes.map(keyframeOut),
     })),
     title: spec.title,
@@ -189,6 +197,7 @@ export function toGenerated(
     seed: spec.world.seed,
     subjectLabel: spec.subject.label,
     subjectParts: subjectParts(spec).map(partOut),
+    ...(spec.subject.avatar ? { subjectAvatar: spec.subject.avatar } : {}),
     subjectKeyframes: spec.subject.keyframes.map(keyframeOut),
     weatherKind: spec.weather.kind,
     weatherColor: spec.weather.color,

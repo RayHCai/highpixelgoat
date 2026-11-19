@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
+  ACTIONS,
   ACTOR_KINDS,
+  AvatarSchema,
   EFFECTS,
   MODES,
   PACES,
@@ -95,6 +97,10 @@ export const GeneratedKeyframeSchema = z.object({
   visible: z
     .boolean()
     .describe("False to hide it from this moment until a later visible keyframe (it has left, or has not arrived)."),
+  action: z
+    .enum(ACTIONS)
+    .optional()
+    .describe("What an avatar does while it stands here (idle when absent). Ignored by part models."),
 });
 export type GeneratedKeyframe = z.infer<typeof GeneratedKeyframeSchema>;
 
@@ -112,7 +118,8 @@ export const GeneratedActorSchema = z.object({
     .describe("Largest dimension in metres: a person 1.7, a car 4.5, a cat 0.5, a wheelie bin 1.2, a drone 0.4."),
   parts: z
     .array(GeneratedPartSchema)
-    .describe("2 to 12 primitives, same unit space and rules as the subject. The front faces +z."),
+    .describe("2 to 12 primitives, same unit space and rules as the subject. The front faces +z. Empty for an avatar."),
+  avatar: AvatarSchema.optional().describe("A blocky avatar instead of parts; sizeMetres is then its height."),
   keyframes: z.array(GeneratedKeyframeSchema).describe("2 to 8 moments in chronological order. See EXTRAS."),
 });
 export type GeneratedActor = z.infer<typeof GeneratedActorSchema>;
@@ -136,6 +143,7 @@ export const GeneratedSpecSchema = z.object({
   subjectParts: z
     .array(GeneratedPartSchema)
     .describe("The subject model, 3 to 20 primitives that look like the thing the scenario is about. See THE SUBJECT."),
+  subjectAvatar: AvatarSchema.optional().describe("A blocky avatar as the subject; subjectParts is then ignored."),
   subjectKeyframes: z
     .array(GeneratedKeyframeSchema)
     .describe(

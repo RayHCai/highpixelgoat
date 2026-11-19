@@ -7,7 +7,11 @@ import { z } from "zod";
  * decided at render time.
  */
 
-export const STYLES = ["pixels", "lowpoly", "drawing"] as const;
+/**
+ * Render styles. "blocks" is the look of a blocky building game: glossy
+ * plastic, rounded bricks, a studded baseplate, and people as blocky avatars.
+ */
+export const STYLES = ["pixels", "lowpoly", "drawing", "blocks"] as const;
 export type Style = (typeof STYLES)[number];
 
 /**
@@ -98,6 +102,13 @@ export type Part = z.infer<typeof PartSchema>;
 export const ACTOR_KINDS = ["person", "animal", "vehicle", "object"] as const;
 export type ActorKind = (typeof ACTOR_KINDS)[number];
 
+/**
+ * What an avatar does while it stands at a keyframe. Moving between
+ * keyframes is always a walk (or a run when it covers ground quickly).
+ */
+export const ACTIONS = ["idle", "wave", "jump", "dance", "point", "cheer", "sit", "flail", "tpose"] as const;
+export type Action = (typeof ACTIONS)[number];
+
 /** Where an extra is at a moment of the video, timed relative to a beat. */
 export const KeyframeSchema = z.object({
   /** Index of the beat this keyframe hangs off (0 = the first beat). */
@@ -110,19 +121,55 @@ export const KeyframeSchema = z.object({
   /** Facing while standing still, degrees: 0 faces the camera (+z), 90 faces +x. */
   face: z.number().default(0),
   visible: z.boolean().default(true),
+  /** What an avatar does from this moment until it next moves (ignored by part models); idle when absent. */
+  action: z.enum(ACTIONS).optional(),
 });
 export type Keyframe = z.infer<typeof KeyframeSchema>;
 
-/** An extra: another person, animal, vehicle or object taking part in the scene. */
-export const ActorSchema = z.object({
-  name: z.string().max(40),
-  kind: z.enum(ACTOR_KINDS),
-  /** Its model, in the same unit space as the subject. */
-  parts: z.array(PartSchema).min(1).max(24),
-  /** Largest dimension in world units (a person is 0.6). Extras stay life-sized. */
-  size: z.number().positive(),
-  keyframes: z.array(KeyframeSchema).min(1).max(12),
+export const AVATAR_FACES = ["smile", "grin", "neutral", "shocked", "smug", "sad", "angry", "sleepy", "blank"] as const;
+export const AVATAR_HAIRS = ["none", "short", "long", "spiky", "bun", "afro"] as const;
+export const AVATAR_HATS = ["none", "cap", "beanie", "tophat", "crown", "headphones"] as const;
+export const AVATAR_BUILDS = ["classic", "slim", "chunky", "kid"] as const;
+
+/**
+ * A blocky avatar: box legs, torso and arms under a rounded block head with a
+ * drawn face, rigged at the hips, shoulders and neck and posed by the
+ * keyframes' actions. Drawn in any style; it is the native person of the
+ * "blocks" style. Its size is its height.
+ */
+export const AvatarSchema = z.object({
+  skin: hexColor.default("#e8b98f"),
+  shirt: hexColor.default("#d94848"),
+  pants: hexColor.default("#33415c"),
+  shoes: hexColor.default("#26262b"),
+  face: z.enum(AVATAR_FACES).default("smile"),
+  hair: z.enum(AVATAR_HAIRS).default("short"),
+  hairColor: hexColor.default("#3b2a1e"),
+  hat: z.enum(AVATAR_HATS).default("none"),
+  hatColor: hexColor.default("#2b6fd6"),
+  build: z.enum(AVATAR_BUILDS).default("classic"),
+  /** A thing held in the right hand (the X in "everyone has X"), as a part model. */
+  held: z.array(PartSchema).max(16).default([]),
+  /** Largest dimension of the held thing as a fraction of the avatar's height. */
+  heldSize: z.number().positive().max(3).default(0.3),
 });
+export type Avatar = z.infer<typeof AvatarSchema>;
+export type AvatarInput = z.input<typeof AvatarSchema>;
+
+/** An extra: another person, animal, vehicle or object taking part in the scene. */
+export const ActorSchema = z
+  .object({
+    name: z.string().max(40),
+    kind: z.enum(ACTOR_KINDS),
+    /** Its model, in the same unit space as the subject. Unused when it is an avatar. */
+    parts: z.array(PartSchema).max(24).default([]),
+    /** A blocky avatar instead of a part model. */
+    avatar: AvatarSchema.optional(),
+    /** Largest dimension in world units (a person is 0.6; an avatar's height). Extras stay life-sized. */
+    size: z.number().positive(),
+    keyframes: z.array(KeyframeSchema).min(1).max(12),
+  })
+  .refine((a) => a.parts.length > 0 || a.avatar, { message: "an extra needs parts or an avatar" });
 export type Actor = z.infer<typeof ActorSchema>;
 
 /** One spoken word of a narration line, timed in seconds from the beat start. */
@@ -209,6 +256,8 @@ export const ScenarioSpecSchema = z.object({
       label: z.string().max(16),
       /** The model: what the scenario is about, built from primitives (a dog, a penny, a person). */
       parts: z.array(PartSchema).min(1).max(40).optional(),
+      /** A blocky avatar instead of a part model; parts, when given too, are ignored. */
+      avatar: AvatarSchema.optional(),
       /** Legacy fixed shapes, still accepted so older specs render. */
       shape: z.enum(SHAPES).optional(),
       texture: z.enum(TEXTURES).optional(),
@@ -218,7 +267,9 @@ export const ScenarioSpecSchema = z.object({
       /** Where the subject goes over the video; the camera follows. Empty when it stays at the origin. */
       keyframes: z.array(KeyframeSchema).max(12).default([]),
     })
-    .refine((s) => (s.parts && s.parts.length > 0) || s.shape, { message: "subject needs parts or a shape" }),
+    .refine((s) => (s.parts && s.parts.length > 0) || s.shape || s.avatar, {
+      message: "subject needs parts, a shape or an avatar",
+    }),
   /** Persistent red pill under the heading, e.g. "CHEEKS DOUBLE EVERY HOUR". */
   rule: z.string().max(48).nullable(),
   /** Which narrator reads the lines and how quickly. */

@@ -283,7 +283,7 @@ test("the built-in example scripts satisfy the schema and lift into realistic se
     assert.deepEqual(GeneratedSpecSchema.parse(script), script, `example ${id}`);
     const spec = toScenarioSpec(script, { id: `x-${id}`, seed: null });
     assert.ok(["bedroom", "kitchen", "street", "livingroom", "city"].includes(spec.world.terrain));
-    assert.ok(spec.subject.parts!.length >= 3, `example ${id} has a real model`);
+    assert.ok((spec.subject.parts?.length ?? 0) >= 3 || spec.subject.avatar, `example ${id} has a real model`);
     assert.ok(spec.actors.length >= 2, `example ${id} has extras`);
     assert.ok(
       spec.actors.every((a) => a.keyframes[0]!.beat === 0),
@@ -294,7 +294,7 @@ test("the built-in example scripts satisfy the schema and lift into realistic se
   }
   assert.deepEqual(
     Object.values(EXAMPLES).map((s) => s.mode),
-    ["scale", "scale", "scale", "story", "overview"],
+    ["scale", "scale", "scale", "story", "overview", "story"],
     "the examples cover every format",
   );
   const moved = offlineEdit(EXAMPLES.a, "move it to the living room");

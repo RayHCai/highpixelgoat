@@ -117,7 +117,7 @@ export class Hud {
 
   constructor(spec: ScenarioSpec, stage: HTMLElement) {
     this.spec = spec;
-    this.root = el("div", "hud", stage);
+    this.root = el("div", `hud hud-${spec.style}`, stage);
     const block = el("div", "hud-block", this.root);
     this.heading = el("div", "hud-heading", block);
     this.stats = el("div", "hud-stats", block);
@@ -225,4 +225,12 @@ export const HUD_CSS = `
 .hud-callout-label { font-size: 24px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
 .hud-callout-line { position: absolute; left: 0; top: 0; fill: none; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; filter: drop-shadow(0 2px 6px rgba(0,0,0,.45)); }
 .hud-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+/* blocks: the outlined game-caption look of blocky story videos, bold sans in a thick black stroke. */
+.hud-blocks .hud-heading, .hud-blocks .hud-caption { font-family: "Inter", "Segoe UI", system-ui, sans-serif; font-style: normal; font-weight: 800; -webkit-text-stroke: 10px #000; paint-order: stroke fill; text-shadow: 0 6px 0 rgba(0,0,0,.55); letter-spacing: 0; }
+.hud-blocks .hud-heading { font-size: 104px; }
+.hud-blocks .hud-caption { font-size: 52px; line-height: 1.22; text-align: center; }
+.hud-blocks .hud-word { color: rgba(255,255,255,.55); }
+.hud-blocks .hud-word.on { color: #fff; }
+.hud-blocks .hud-stat { -webkit-text-stroke: 6px #000; paint-order: stroke fill; }
+.hud-blocks .hud-rule { background: #ffd23f; color: #111; border: 5px solid #000; border-radius: 14px; box-shadow: 0 6px 0 rgba(0,0,0,.55); }
 `;

@@ -1,4 +1,4 @@
-import type { Actor, Beat, Keyframe, ScenarioSpec } from "./schema";
+import type { Action, Actor, Beat, Keyframe, ScenarioSpec } from "./schema";
 
 /**
  * Pure timeline math. Everything the player shows at time t is derived from
@@ -281,6 +281,12 @@ export interface ActorState {
   ry: number;
   visible: boolean;
   moving: boolean;
+  /** Ground covered per second while moving, in world units; 0 standing still. */
+  speed: number;
+  /** What it does while standing: the action of the keyframe it last reached. */
+  action: Action;
+  /** Seconds since it reached that keyframe (or started moving), for posing. */
+  since: number;
 }
 
 interface TimedKeyframe {
@@ -289,6 +295,7 @@ interface TimedKeyframe {
   z: number;
   face: number;
   visible: boolean;
+  action: Action;
 }
 
 function keyframeTimes(spec: ScenarioSpec, keyframes: Keyframe[]): TimedKeyframe[] {
@@ -296,7 +303,7 @@ function keyframeTimes(spec: ScenarioSpec, keyframes: Keyframe[]): TimedKeyframe
   return keyframes
     .map((k) => {
       const beat = beats[Math.min(Math.max(0, k.beat), beats.length - 1)]!;
-      return { time: beat.at + k.offset, x: k.x, z: k.z, face: k.face, visible: k.visible };
+      return { time: beat.at + k.offset, x: k.x, z: k.z, face: k.face, visible: k.visible, action: k.action ?? "idle" };
     })
     .sort((a, b) => a.time - b.time);
 }
@@ -315,6 +322,7 @@ function alongKeyframes(keys: TimedKeyframe[], t: number, walks: boolean, size: 
   let x = a.x;
   let z = a.z;
   let moving = false;
+  let speed = 0;
   let ry = (a.face * Math.PI) / 180;
   if (b) {
     const span = b.time - a.time;
@@ -323,21 +331,33 @@ function alongKeyframes(keys: TimedKeyframe[], t: number, walks: boolean, size: 
     z = a.z + (b.z - a.z) * p;
     const dx = b.x - a.x;
     const dz = b.z - a.z;
-    if (Math.hypot(dx, dz) > 1e-3) {
+    const dist = Math.hypot(dx, dz);
+    if (dist > 1e-3) {
       ry = Math.atan2(dx, dz);
       moving = p > 0 && p < 1;
+      if (moving) speed = dist / Math.max(0.01, span);
     }
   }
   const y = moving && walks ? Math.abs(Math.sin(t * 9)) * size * 0.04 : 0;
-  return { x, z, y, ry, visible: a.visible, moving };
+  return { x, z, y, ry, visible: a.visible, moving, speed, action: a.action, since: Math.max(0, t - a.time) };
 }
 
-const AT_ORIGIN: ActorState = { x: 0, z: 0, y: 0, ry: 0, visible: true, moving: false };
+const AT_ORIGIN: ActorState = {
+  x: 0,
+  z: 0,
+  y: 0,
+  ry: 0,
+  visible: true,
+  moving: false,
+  speed: 0,
+  action: "idle",
+  since: 0,
+};
 
 /** Where the subject is at time t: along its keyframes, or at the origin facing the camera. */
 export function resolveSubject(spec: ScenarioSpec, t: number, size = spec.subject.baseSize): ActorState {
   const keyframes = spec.subject.keyframes;
-  if (keyframes.length === 0) return AT_ORIGIN;
+  if (keyframes.length === 0) return { ...AT_ORIGIN, since: Math.max(0, t) };
   return alongKeyframes(keyframeTimes(spec, keyframes), t, true, size);
 }
 
