@@ -38,6 +38,13 @@ about, or standing in a city under the weather), a big serif heading, bold
 stat lines, a red rule pill, and the spoken line as an italic subtitle that
 lights up word by word.
 
+Ask for a blocky game look ("in this town everyone has a duck, roblox style")
+and the take uses the **blocks** style instead: glossy plastic on a studded
+baseplate, people as rigged blocky avatars that walk, wave, dance, point and
+hold things, and bold outlined game captions. The scene agent also knows the
+trend formats that go with it ("in this town, everyone has X", dreamcore, the
+backrooms) and the library tracks and effects made for them.
+
 ## Requirements
 
 - Node 22+
@@ -68,10 +75,10 @@ that fails its check is rolled back. The Instagram caption
 and hashtags sit under the preview with a Copy link. "Render video" exports
 the mp4 (a few minutes, progress shown) and turns into a download button.
 
-No Claude Code? `HPG_OFFLINE=1 npm run dev` runs the whole dashboard with five
-built-in example scripts standing in for Claude (three that scale, one story,
-one overview), so voicing, previews, the chat plumbing and video export can be
-tried first.
+No Claude Code? `HPG_OFFLINE=1 npm run dev` runs the whole dashboard with six
+built-in example scripts standing in for Claude (three that scale, two stories
+of which one is blocky avatars, one overview), so voicing, previews, the chat
+plumbing and video export can be tried first.
 
 ## Configuration
 
@@ -117,6 +124,18 @@ pick matches nothing gets a deterministic choice. The preview and the exported
 mp4 play the same mixed track. Ask in chat to switch tracks or to drop the
 music. With an empty folder, takes are narration only.
 
+`npm run music` writes original loops in the styles that trend on Instagram and
+TikTok, synthesized in code (`src/voice/compose.ts`) so they are yours to post:
+a blocky-game town lobby, a dreamcore music box, the backrooms fluorescent hum,
+slowed liminal mall muzak, and a Brazilian funk phonk cowbell beat. It also
+writes stand-ins for licensed trending sounds (`trending-my-moon-my-man-soft-launch`,
+`trending-montagem-chupeta-funk`, `trending-no-signal-tv-bossa`, in
+`src/voice/standins.ts`): originals matched to each sound's tempo, key and
+groove, so takes can be cut and previewed locally. To hear the real recording,
+replace the stand-in with your own copy under the same name; `npm run music`
+never overwrites a file it did not write. Add the official audio in the app
+when you post.
+
 Beats can also cue the track (`musicCue`: `low`, `cut`, `swell`, `play`), so the
 music drops out on a loaded moment, comes back on the next shot, lifts at the
 payoff and sinks under an end card. A take with no narration (a silent,
@@ -125,7 +144,9 @@ subtitle-only reel) plays the music louder, at `HPG_MUSIC_SOLO_VOLUME`.
 ## Sound effects
 
 `npm run sfx` writes a synthesized starter set into `sfx/` (controller clicks,
-a phone buzz, a message ping, typing, a soft thud, a whoosh, room tone); add
+a phone buzz, a message ping, typing, a soft thud, a whoosh, room tone, game
+blips for jumps, coins, bonks and level-ups, a pop, a bass boom, a dream chime,
+a fluorescent flicker and a VHS glitch); add
 your own recordings next to them. Claude sees the names and places effects on
 beats (`sfx: [{ name, offset, volume }]`), mixed on top of the voice and the
 music. See [sfx/README.md](sfx/README.md).
@@ -154,6 +175,7 @@ rest are primitive models (`src/take/characters.ts`). See
 | `npm run render -- out/<id>/<a\|b\|c> [--snapshots 0,10,28] [--out f.mp4] [--png] [--crf n]` | Export a built site to mp4 (or stills) without the dashboard         |
 | `npm run render -- <scenario>.json`                                                          | Import a hand-written scenario into `out/` (voiced) and render it    |
 | `npm run sfx [-- --force]`                                                                   | Write the starter sound effects into `sfx/`                          |
+| `npm run music [-- --force]`                                                                 | Write the original trend-style loops into `music/`                   |
 | `npm run assets [-- --force]`                                                                | Write the built-in characters into `assets/`                         |
 | `npm run check`                                                                              | Format check, lint, typecheck and tests (see Development)            |
 

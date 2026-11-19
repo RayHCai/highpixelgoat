@@ -25,7 +25,7 @@ shared ─▶ starter ─▶ script ┐
 | `src/shared/`  | Node    | Framework-free helpers: repository paths, atomic JSON files, child processes, text, error messages. Depends on nothing else in src. |
 | `src/starter/` | Browser | The renderer every take starts from (`player/`, `hud/`, `scene/`, `spec/`) and `TAKE_GUIDE.md`. Self-contained: three and zod only. |
 | `src/script/`  | Node    | The flat starter-shaped script: its schema, the lift into a full spec, the bundled examples, and offline mode.                      |
-| `src/voice/`   | Node    | Text-to-speech providers (ElevenLabs, Edge, Windows SAPI, silent), the music library, ffmpeg mixdown.                               |
+| `src/voice/`   | Node    | Text-to-speech providers (ElevenLabs, Edge, Windows SAPI, silent), music library and synthesizer, ffmpeg mixdown.                   |
 | `src/render/`  | Node    | Headless Chromium capture (`capture.ts`) and the ffmpeg video/stills exporter (`video.ts`).                                         |
 | `src/take/`    | Node    | One take folder: the core spec contract, seeding and building the site, narration, the 3D asset library, the Instagram caption.     |
 | `src/agent/`   | Node    | The scene agent: Claude Code config, system prompt, path guard, session, MCP take tools, the verify gate, the run loop.             |
@@ -95,6 +95,11 @@ and objects in the scene: each is its own part model with a real size in
 metres and beat-timed keyframes; `resolveActors` in
 `src/starter/spec/timing.ts` glides them between keyframes, and
 `src/starter/scene/actors.ts` draws them life-sized while the subject grows.
+The subject or any extra can be a blocky avatar instead
+(`src/starter/scene/avatar.ts`): a rig of box limbs under a rounded head with a
+drawn face, posed every frame from its keyframe's action; it is the native
+person of the "blocks" style. How every style shades and shapes a mesh lives in
+`src/starter/scene/materials.ts`.
 Ready-made models come from the 3D asset library instead: the `asset` tool
 copies a `.glb` into the take's `src/assets/`, and `src/starter/scene/assets.ts`
 loads it (a top-level await, so it is ready before the first frame), sizes it,
