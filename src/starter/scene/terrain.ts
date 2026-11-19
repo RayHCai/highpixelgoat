@@ -1,13 +1,15 @@
 import * as THREE from "three";
 import type { ScenarioSpec, Style } from "../spec/schema";
 import { focusPoints, gridFor, heightCap, surfaceAt, type Grid } from "./layout";
+import { styledMaterial, studTexture } from "./materials";
 import { cellId, fbm, makeRng } from "./noise";
 import { SETTINGS, STYLE_LOOKS, TERRAIN_PALETTES, type TerrainPalette } from "./palette";
 
 /**
  * Procedural ground. A height field is generated from the spec seed, then
- * turned into a style-specific mesh: voxel columns for "pixels", a jittered
- * flat-shaded triangle mesh for "lowpoly" and "drawing".
+ * turned into a style-specific mesh: voxel columns for "pixels" (studded
+ * plastic ones for "blocks"), a jittered flat-shaded triangle mesh for
+ * "lowpoly" and "drawing".
  *
  * Two levels of detail share the same noise functions in world coordinates:
  * a fine inner square under the subject, and a coarse outer ring that carries
@@ -231,12 +233,13 @@ export function buildTerrainMesh(spec: ScenarioSpec, inner: TerrainData): Terrai
   const horizon = borderColor(outer);
 
   for (const data of [inner, outer]) {
-    group.add(spec.style === "pixels" ? buildVoxelTerrain(data) : buildPolyTerrain(data, spec.style));
+    const voxels = spec.style === "pixels" || spec.style === "blocks";
+    group.add(voxels ? buildVoxelTerrain(data, spec.style) : buildPolyTerrain(data, spec.style));
   }
 
   const far = new THREE.Mesh(
     new THREE.CircleGeometry(OUTER_LOD.size * OUTER_LOD.cell * 4, 48),
-    new THREE.MeshLambertMaterial({ color: horizon }),
+    styledMaterial(spec.style, { color: horizon }),
   );
   far.rotation.x = -Math.PI / 2;
   far.position.y = inner.seaLevel - 0.05;
@@ -271,7 +274,7 @@ function borderColor(data: TerrainData): THREE.Color {
   return new THREE.Color(r / n, g / n, b / n);
 }
 
-function buildVoxelTerrain(data: TerrainData): THREE.Object3D {
+function buildVoxelTerrain(data: TerrainData, style: Style): THREE.Object3D {
   const { heights, colors, skip, seaLevel } = data;
   const { size, cell } = data.lod;
   const half = size / 2;
@@ -279,7 +282,12 @@ function buildVoxelTerrain(data: TerrainData): THREE.Object3D {
   for (let i = 0; i < size * size; i++) if (!skip[i]) count++;
 
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshLambertMaterial();
+  // A baseplate: plastic columns whose tops (the +y face) carry the studs.
+  const plastic = styledMaterial(style);
+  const material =
+    style === "blocks"
+      ? [plastic, plastic, styledMaterial(style, { map: studTexture() }), plastic, plastic, plastic]
+      : plastic;
   const mesh = new THREE.InstancedMesh(geometry, material, count);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -381,10 +389,7 @@ function buildPolyTerrain(data: TerrainData, style: Style): THREE.Object3D {
   geometry.setAttribute("color", new THREE.BufferAttribute(cols, 3));
   geometry.computeVertexNormals();
 
-  const material =
-    style === "drawing"
-      ? new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: toonGradient() })
-      : new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  const material = styledMaterial(style, { vertexColors: true });
   const land = new THREE.Mesh(geometry, material);
   land.castShadow = true;
   land.receiveShadow = true;
@@ -401,17 +406,4 @@ function buildPolyTerrain(data: TerrainData, style: Style): THREE.Object3D {
   water.receiveShadow = true;
   group.add(water);
   return group;
-}
-
-let gradientTexture: THREE.DataTexture | null = null;
-/** Three-step gradient for toon shading, shared by all drawing materials. */
-export function toonGradient(): THREE.DataTexture {
-  if (gradientTexture) return gradientTexture;
-  const data = new Uint8Array([90, 160, 255]);
-  const tex = new THREE.DataTexture(data, 3, 1, THREE.RedFormat);
-  tex.minFilter = THREE.NearestFilter;
-  tex.magFilter = THREE.NearestFilter;
-  tex.needsUpdate = true;
-  gradientTexture = tex;
-  return tex;
 }

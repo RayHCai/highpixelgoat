@@ -13,7 +13,8 @@ import {
 } from "./layout";
 import { fbm, makeRng } from "./noise";
 import { SETTINGS, type Setting } from "./palette";
-import { groundHeightAt, isParkPath, isWaterAt, toonGradient, type TerrainData } from "./terrain";
+import { styledMaterial, unitBall, unitBox } from "./materials";
+import { groundHeightAt, isParkPath, isWaterAt, type TerrainData } from "./terrain";
 
 /**
  * Everything that stands on the ground and makes a place look like itself:
@@ -570,23 +571,15 @@ function room(set: PropSet, kind: RoomKind, seed: number, lift: number): void {
 
 // ---------- assembly ----------
 
-function materialFor(style: Style): THREE.Material {
-  return style === "drawing"
-    ? new THREE.MeshToonMaterial({ gradientMap: toonGradient() })
-    : new THREE.MeshLambertMaterial({ flatShading: style === "lowpoly" });
-}
-
 function geometryFor(kind: Kind, style: Style): THREE.BufferGeometry {
-  if (kind === "box" || (kind === "ball" && style === "pixels")) {
-    return new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
-  }
+  if (kind === "box") return unitBox(style).translate(0, 0.5, 0);
   if (kind === "roof") return new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4).translate(0, 0.5, 0);
-  return new THREE.IcosahedronGeometry(0.5, style === "lowpoly" ? 1 : 2).translate(0, 0.5, 0);
+  return unitBall(style).translate(0, 0.5, 0);
 }
 
 function toMesh(kind: Kind, list: Instance[], style: Style): THREE.InstancedMesh | null {
   if (list.length === 0) return null;
-  const mesh = new THREE.InstancedMesh(geometryFor(kind, style), materialFor(style), list.length);
+  const mesh = new THREE.InstancedMesh(geometryFor(kind, style), styledMaterial(style), list.length);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.frustumCulled = false;

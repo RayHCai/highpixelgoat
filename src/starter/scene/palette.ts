@@ -182,8 +182,11 @@ export interface StyleLook {
   saturation: number;
   /** Fog density multiplier. */
   fog: number;
-  /** Paper tint mixed into the sky for the drawing style. */
-  paper: string | null;
+  /** A colour mixed into the sky and fog (paper for drawing, a clear game blue for blocks), and how much. */
+  tint: { color: string; amount: number } | null;
+  /** Sun and sky-bounce light intensities. */
+  sun: number;
+  hemi: number;
 }
 
 export const STYLE_LOOKS: Record<Style, StyleLook> = {
@@ -192,15 +195,28 @@ export const STYLE_LOOKS: Record<Style, StyleLook> = {
     post: { scale: 0.5, nearest: true, outline: 0, inkColor: "#000000" },
     saturation: 1.0,
     fog: 1.0,
-    paper: null,
+    tint: null,
+    sun: 1.7,
+    hemi: 0.85,
   },
   // Direct multisampled render.
-  lowpoly: { post: null, saturation: 1.05, fog: 1.1, paper: null },
+  lowpoly: { post: null, saturation: 1.05, fog: 1.1, tint: null, sun: 1.7, hemi: 0.85 },
   // Supersampled render with ink outlines on depth edges.
   drawing: {
     post: { scale: 1.5, nearest: false, outline: 0.85, inkColor: "#2a1f18" },
     saturation: 0.75,
     fog: 0.8,
-    paper: "#f4ecdc",
+    tint: { color: "#f4ecdc", amount: 0.55 },
+    sun: 1.2,
+    hemi: 0.85,
+  },
+  // Direct render of saturated glossy plastic under a clear blue sky, the air almost free of haze.
+  blocks: {
+    post: null,
+    saturation: 1.35,
+    fog: 0.55,
+    tint: { color: "#62b6ff", amount: 0.35 },
+    sun: 1.85,
+    hemi: 1.05,
   },
 };

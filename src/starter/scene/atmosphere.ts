@@ -3,7 +3,7 @@ import type { Style, WeatherKind } from "../spec/schema";
 import type { TimelineState } from "../spec/timing";
 import { clamp01, easeOutCubic } from "../spec/timing";
 import { fbm, makeRng } from "./noise";
-import { toonGradient } from "./terrain";
+import { styledMaterial, unitBall } from "./materials";
 
 /**
  * Everything that moves besides the subject and camera: drifting clouds, the
@@ -13,20 +13,17 @@ import { toonGradient } from "./terrain";
  */
 
 function puffMaterial(style: Style): THREE.Material {
-  return style === "drawing"
-    ? new THREE.MeshToonMaterial({ color: "#ffffff", gradientMap: toonGradient() })
-    : new THREE.MeshLambertMaterial({ color: "#ffffff", flatShading: style === "lowpoly" });
+  return styledMaterial(style, { color: "#ffffff" });
 }
 
 function puffGeometry(style: Style): THREE.BufferGeometry {
-  return style === "pixels" ? new THREE.BoxGeometry(1, 1, 1) : new THREE.IcosahedronGeometry(0.62, 1);
+  if (style === "pixels" || style === "blocks") return unitBall(style);
+  return new THREE.IcosahedronGeometry(0.62, 1);
 }
 
 /** Debris is earth and rubble, not cloud: a dusty tan that reads against lawns, roads and floors. */
 function debrisMaterial(style: Style): THREE.Material {
-  return style === "drawing"
-    ? new THREE.MeshToonMaterial({ color: "#b9a888", gradientMap: toonGradient() })
-    : new THREE.MeshLambertMaterial({ color: "#b9a888", flatShading: style === "lowpoly" });
+  return styledMaterial(style, { color: "#b9a888" });
 }
 
 interface Puff {
@@ -239,10 +236,7 @@ const FALLS: Record<
 };
 
 function weatherMaterial(style: Style, color: string, perInstance: boolean): THREE.Material {
-  const c = perInstance ? "#ffffff" : color;
-  return style === "drawing"
-    ? new THREE.MeshToonMaterial({ color: c, gradientMap: toonGradient() })
-    : new THREE.MeshLambertMaterial({ color: c, flatShading: style === "lowpoly" });
+  return styledMaterial(style, { color: perInstance ? "#ffffff" : color });
 }
 
 /**
@@ -278,7 +272,7 @@ export class Weather {
     }
     const [sx, sy, sz] = this.look.shape;
     const geometry =
-      style === "pixels" || kind !== "snow"
+      style === "pixels" || style === "blocks" || kind !== "snow"
         ? new THREE.BoxGeometry(sx, sy, sz)
         : new THREE.IcosahedronGeometry(0.55, 0);
     const confetti = kind === "confetti";
@@ -373,10 +367,7 @@ export class Cover {
       pos.setZ(i, fbm(x / 9, y / 9, seed + 909, 3));
     }
     geometry.computeVertexNormals();
-    this.material =
-      style === "drawing"
-        ? new THREE.MeshToonMaterial({ color, gradientMap: toonGradient(), transparent: true })
-        : new THREE.MeshLambertMaterial({ color, flatShading: style !== "pixels", transparent: true });
+    this.material = styledMaterial(style, { color, transparent: true }) as THREE.Material & { opacity: number };
     this.mesh = new THREE.Mesh(geometry, this.material);
     this.mesh.rotation.x = -Math.PI / 2;
     this.mesh.receiveShadow = true;

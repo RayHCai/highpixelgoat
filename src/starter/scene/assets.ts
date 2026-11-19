@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import type { Style } from "../spec/schema";
-import { toonGradient } from "./terrain";
+import { styledMaterial } from "./materials";
 
 /**
  * Models from the author's 3D asset library. The asset tool copies a .glb
@@ -61,10 +61,7 @@ function restyle(material: THREE.Material, style: Style): THREE.Material {
     side: material.side,
   };
   // The starter lights with a sun and a hemisphere and no environment map, under which metallic PBR turns black.
-  const out =
-    style === "drawing"
-      ? new THREE.MeshToonMaterial({ ...shared, gradientMap: toonGradient() })
-      : new THREE.MeshLambertMaterial({ ...shared, flatShading: style === "lowpoly" });
+  const out = styledMaterial(style, shared);
   cache.set(material, out);
   return out;
 }
